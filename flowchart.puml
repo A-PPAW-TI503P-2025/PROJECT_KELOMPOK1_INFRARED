@@ -1,0 +1,75 @@
+@startuml
+title Flowchart Sistem Monitoring Infrared Ruangan Rumah Sakit
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 20
+skinparam defaultFontName Arial
+skinparam activity {
+    BackgroundColor #F9F9F9
+    BorderColor #333333
+    FontColor #000000
+}
+
+start
+
+:Admin membuka aplikasi;
+:Admin memasukkan\nusername dan password;
+
+if (Autentikasi berhasil?) then (Ya)
+    :Sistem membuat sesi login;
+    :Tampilkan Dashboard Admin;
+
+    repeat
+        :Admin memilih menu;
+
+        if (Kelola Ruangan?) then (Ya)
+            :Sistem menampilkan\ndaftar ruangan;
+
+            if (Tambah Ruangan?) then (Ya)
+                :Admin input data ruangan\n(ID, Nama, Lokasi);
+                :Sistem validasi data;
+                if (Data valid?) then (Ya)
+                    :Simpan data ruangan\nke database;
+                else (Tidak)
+                    :Tampilkan pesan kesalahan;
+                endif
+
+            elseif (Edit Ruangan?) then (Ya)
+                :Admin memilih ruangan;
+                :Admin mengubah data ruangan;
+                :Sistem validasi perubahan;
+                :Update data ruangan\ndi database;
+
+            elseif (Hapus Ruangan?) then (Ya)
+                :Admin memilih ruangan;
+                :Sistem meminta\nkonfirmasi penghapusan;
+                if (Konfirmasi?) then (Ya)
+                    :Hapus data ruangan\ndari database;
+                else (Tidak)
+                    :Penghapusan dibatalkan;
+                endif
+            endif
+
+        elseif (Monitoring Ruangan?) then (Ya)
+            :Admin memilih ruangan;
+            :Sistem menghubungkan\nsensor infrared;
+            :Membaca suhu ruangan;
+            :Membaca kelembaban ruangan;
+            :Menampilkan data\nsecara real-time;
+
+            if (Melebihi batas normal?) then (Ya)
+                :Tampilkan peringatan\n(Alert);
+            endif
+
+        elseif (Logout?) then (Ya)
+            :Sistem menghapus sesi login;
+            stop
+        endif
+
+    repeat while (Kembali ke Dashboard?)
+
+else (Tidak)
+    :Tampilkan pesan\nlogin gagal;
+    stop
+endif
+@enduml
