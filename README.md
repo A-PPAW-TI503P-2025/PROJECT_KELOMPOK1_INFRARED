@@ -9,5 +9,5 @@ class diagram
 
 ERD (Entity Relationship Diagram)
 
-<img width="217" height="803" alt="image" src="https://github.com/user-attachments/assets/0f4126a7-0dcf-4189-b8b2-f27029e37392" />
+<img width="210" height="760" alt="image" src="https://github.com/user-attachments/assets/07104923-9b3f-47c6-bb48-8875f5383a76" />
 
