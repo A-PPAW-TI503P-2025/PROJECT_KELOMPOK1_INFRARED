@@ -1,0 +1,50 @@
+@startuml
+title Activity Diagram Monitoring Rumah Sakit (Admin)
+
+|Admin|
+start
+:Login ke Sistem;
+
+|Sistem|
+if (Validasi Akun?) then (Gagal)
+  :Tampilkan Pesan Error;
+  stop
+else (Berhasil)
+  :Tampilkan Dashboard Utama;
+endif
+
+|Admin|
+fork
+  :Pilih Menu Manajemen Ruangan;
+  |Sistem|
+  :Tampilkan Data dari **Tabel Ruangan**;
+  |Admin|
+  :Lakukan Operasi CRUD\n(Tambah/Edit/Hapus Ruangan);
+  |Sistem|
+  :Update **Tabel Ruangan**;
+
+fork again
+  :Pilih Menu Manajemen Device;
+  |Sistem|
+  :Tampilkan Data dari **Tabel Device**;
+  |Admin|
+  :Hubungkan Device ke Ruangan;
+  |Sistem|
+  :Update **Tabel Device**;
+
+fork again
+  :Pilih Menu Real-time Monitoring;
+  |Sistem|
+  repeat
+    :Ambil Data Sensor dari **Device**;
+    :Simpan Log ke **Tabel Log Monitoring**;
+    :Tampilkan Suhu & Kelembapan Real-time;
+    backward: Tunggu Interval (e.g. 5 detik);
+  repeat while (Admin tetap di halaman?) is (Ya)
+  ->Tidak;
+end fork
+
+|Admin|
+:Logout;
+stop
+@enduml
