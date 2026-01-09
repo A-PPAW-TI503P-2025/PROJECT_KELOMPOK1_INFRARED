@@ -1,0 +1,67 @@
+@startuml System_Architecture_Hospital_IoT
+
+' --- STYLE CONFIGURATION ---
+skinparam linetype ortho
+skinparam componentStyle uml2
+skinparam backgroundColor #FFFFFF
+skinparam packageBackgroundColor #F5F5F5
+
+' --- DEFINISI NODE (PERANGKAT KERAS/LOKASI) ---
+
+node "Lingkungan Rumah Sakit (Ruang Pasien)" as room {
+    component "Sensor Suhu & Lembap\n(Microcontroller + DHT Sensor)" as iot_device #LightBlue
+    note right of iot_device
+      Mengirim data setiap 
+      beberapa detik
+    end note
+}
+
+node "Cloud / Backend Server" as server_env {
+    
+    component "API Gateway / Backend App" as backend #LightYellow {
+        component "Auth Controller" as auth
+        component "Monitoring Controller" as monitor
+        component "WebSocket Service" as socket_svc
+    }
+    
+    database "Database Server" as db_server #LightCoral {
+        folder "Tables" {
+            card "Tabel: Admin" as t_admin
+            card "Tabel: Ruangan" as t_ruang
+            card "Tabel: Device" as t_device
+            card "Tabel: Log_Monitoring" as t_log
+        }
+    }
+}
+
+node "Client Side (Admin)" as client_pc {
+    component "Web Browser\n(Admin Dashboard)" as web_app #LightGreen
+}
+
+' --- DEFINISI RELASI & PROTOKOL ---
+
+' 1. IOT ke Server
+iot_device -down-> backend : " HTTP POST / MQTT\n(Kirim Data Sensor)"
+
+' 2. Server ke Database
+backend -down-> db_server : " SQL Query / ORM\n(Read/Write Data)"
+monitor ..> t_log : " Insert Log"
+monitor ..> t_device : " Update Status"
+auth ..> t_admin : " Verifikasi Login"
+
+' 3. Server ke Client (Realtime)
+socket_svc -up-> web_app : " WebSocket (WSS)\n(Push Real-time Data)"
+
+' 4. Client ke Server (CRUD)
+web_app -down-> backend : " HTTP REST API\n(CRUD Ruangan & View History)"
+
+' --- KETERANGAN TAMBAHAN ---
+legend right
+  | Warna | Tipe Komponen |
+  | <#LightBlue> | Hardware IoT (Sensor) |
+  | <#LightYellow> | Aplikasi Backend |
+  | <#LightCoral> | Database Storage |
+  | <#LightGreen> | Frontend Admin |
+endlegend
+
+@enduml
