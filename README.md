@@ -15,3 +15,6 @@ Activity Diagram
 
 Use Case
 <img width="1060" height="813" alt="Screenshot 2026-01-09 212736" src="https://github.com/user-attachments/assets/9eab826d-84b2-40c1-bee0-d750a410c18e" />
+
+Flowchart
+<img width="1512" height="864" alt="Screenshot 2026-01-09 at 21 39 07" src="https://github.com/user-attachments/assets/0b6cdeea-149e-4a87-bf69-bb0f3461b074" />
