@@ -13,4 +13,5 @@ ERD (Entity Relationship Diagram)
 Activity Diagram
 <img width="1180" height="666" alt="image" src="https://github.com/user-attachments/assets/94561920-fe01-470c-a1c3-561cb38cba8e" />
 
-
+Use Case
+<img width="1060" height="813" alt="Screenshot 2026-01-09 212736" src="https://github.com/user-attachments/assets/9eab826d-84b2-40c1-bee0-d750a410c18e" />
