@@ -1,0 +1,177 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+function ReportPage() {
+  const [reports, setReports] = useState([]);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchReports = async (query) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const baseUrl = "http://localhost:3001/api/reports/daily";
+      const url = query ? `${baseUrl}?nama=${query}` : baseUrl;
+
+      const response = await axios.get(url, config);
+      setReports(response.data.data);
+      setError(null);
+    } catch (err) {
+      setReports([]);
+      setError(
+        err.response ? err.response.data.message : "Gagal mengambil data"
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchReports("");
+  }, [navigate]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchReports(searchTerm);
+  };
+
+  // Fungsi helper untuk merapikan URL Gambar
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    // Jika path dari DB backslash (\), ubah jadi slash (/)
+    const cleanPath = path.replace(/\\/g, "/");
+    return `http://localhost:3001/${cleanPath}`;
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Laporan Presensi Harian
+      </h1>
+
+      <form onSubmit={handleSearchSubmit} className="mb-6 flex space-x-2">
+        <input
+          type="text"
+          placeholder="Cari berdasarkan nama..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700"
+        >
+          Cari
+        </button>
+      </form>
+
+      {error && (
+        <p className="text-red-600 bg-red-100 p-4 rounded-md mb-4">{error}</p>
+      )}
+
+      {!error && (
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nama
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Foto
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Check-In
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Check-Out
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Lokasi (Lat, Long)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {reports.length > 0 ? (
+                reports.map((presensi) => (
+                  <tr key={presensi.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {presensi.user ? presensi.user.nama : "N/A"}
+                    </td>
+
+                    {/* --- BAGIAN YANG DIPERBAIKI --- */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {/* Ubah 'presensi.photo' menjadi 'presensi.buktiFoto' sesuai database */}
+                      {presensi.buktiFoto ? (
+                        <a 
+                          href={getImageUrl(presensi.buktiFoto)}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={getImageUrl(presensi.buktiFoto)}
+                            alt="Bukti Presensi"
+                            className="h-16 w-16 object-cover rounded-md border border-gray-200 hover:scale-110 transition-transform cursor-pointer"
+                            onError={(e) => {
+                                e.target.onerror = null; 
+                                e.target.src = "https://via.placeholder.com/150?text=Error";
+                            }}
+                          />
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">
+                          Tidak ada foto
+                        </span>
+                      )}
+                    </td>
+                    {/* -------------------------------- */}
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(presensi.checkIn).toLocaleString("id-ID", {
+                        timeZone: "Asia/Jakarta",
+                      })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {presensi.checkOut
+                        ? new Date(presensi.checkOut).toLocaleString("id-ID", {
+                            timeZone: "Asia/Jakarta",
+                          })
+                        : <span className="text-yellow-600 font-semibold">Belum Check-Out</span>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex flex-col">
+                        <span>Lat: {presensi.latitude || "-"}</span>
+                        <span>Lng: {presensi.longitude || "-"}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    Tidak ada data yang ditemukan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ReportPage;
