@@ -1,69 +1,60 @@
-@startuml
-title ERD Monitoring Ruangan
+@startuml ERD_Monitoring_Suhu
 
-' =====================
-' LAYOUT & STYLE
-' =====================
-top to bottom direction
+' Menggunakan skinparam untuk tampilan yang lebih modern
 skinparam linetype ortho
 skinparam shadowing false
-
-skinparam entity {
-  BackgroundColor #c2c8d8
-  BorderColor #38bdf8
-  FontColor white
-  AttributeFontColor white
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
 }
 
-skinparam title {
-  FontColor white
+' --- Definisi Entitas ---
+
+entity "Admin" as admin {
+    * id_admin : int <<PK>>
+    --
+    * username : string
+    * password : string
 }
 
-skinparam backgroundcolor #d3d7e6
-
-' =====================
-' ENTITY
-' =====================
-entity "ADMIN" as ADMIN {
-  int id_admin <<PK>>
-  --
-  string username
-  string password
+entity "Ruangan" as ruangan {
+    * id_ruangan : int <<PK>>
+    --
+    * nama_ruangan : string
+    * lokasi : string
+    * suhu_min : float
+    * suhu_max : float
+    * kelembapan_min : float
+    * kelembapan_max : float
 }
 
-entity "RUANGAN" as RUANGAN {
-  int id_ruangan <<PK>>
-  --
-  string nama_ruangan
-  string lokasi
-  float suhu_min
-  float suhu_max
-  float kelembapan_min
-  float kelembapan_max
+entity "Device" as device {
+    * id_device : int <<PK>>
+    --
+    * kode_device : string
+    * status : string
+    * id_ruangan : int <<FK>>
 }
 
-entity "DEVICE" as DEVICE {
-  int id_device <<PK>>
-  --
-  string kode_device
-  string status
-  int id_ruangan <<FK>>
+entity "Monitoring" as monitoring {
+    * id_monitoring : int <<PK>>
+    --
+    * suhu : float
+    * kelembapan : float
+    * waktu : datetime
+    * id_device : int <<FK>>
 }
 
-entity "MONITORING" as MONITORING {
-  int id_monitoring <<PK>>
-  --
-  float suhu
-  float kelembapan
-  datetime waktu
-  int id_device <<FK>>
-}
+' --- Relasi Antar Entitas ---
 
-' =====================
-' RELATIONSHIP
-' =====================
-ADMIN ||--o{ RUANGAN : mengelola
-RUANGAN ||--o{ DEVICE : memiliki
-DEVICE ||--o{ MONITORING : menghasilkan
+' Satu Admin mengelola banyak Ruangan
+admin ||--o{ ruangan : "mengelola"
+
+' Satu Ruangan memiliki satu Device (1-to-1 sesuai gambar)
+ruangan ||--|| device : "memiliki"
+
+' Satu Device menghasilkan banyak data Monitoring
+device ||--o{ monitoring : "menghasilkan"
 
 @enduml
