@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+class Admin {
+  - id_admin : int
+  - username : string
+  - password : string
+}
+
+class Ruangan {
+  - id_ruangan : int
+  - nama_ruangan : string
+  - lokasi : string
+  - suhu_min : float
+  - suhu_max : float
+  - kelembapan_min : float
+  - kelembapan_max : float
+}
+
+class Device {
+  - id_device : int
+  - kode_device : string
+  - status : string
+  - id_ruangan : int
+}
+
+class Monitoring {
+  - id_monitoring : int
+  - suhu : float
+  - kelembapan : float
+  - waktu : datetime
+  - id_device : int
+}
+
+Admin "1" -- "*" Ruangan : mengelola
+Ruangan "1" -- "1" Device : memiliki
+Device "1" -- "*" Monitoring : menghasilkan
+
+@enduml
