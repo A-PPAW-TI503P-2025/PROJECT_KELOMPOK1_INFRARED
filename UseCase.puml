@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Admin" as admin
+actor "Sensor IoT (ESP32)" as sensor
+
+package "Sistem Monitoring Suhu & Kelembapan" {
+    
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+    
+    usecase "Kelola Data Ruangan\n(CRUD)" as UC_Ruangan
+    usecase "Kelola Data Device\n(CRUD & Status)" as UC_Device
+    
+    usecase "Monitoring Real-time\n(Grafik & Data)" as UC_Monitor
+    usecase "Lihat Riwayat Sensor" as UC_History
+    
+    usecase "Kirim Data Sensor\n(Otomatis)" as UC_Send
+    usecase "Validasi Device" as UC_Validasi
+}
+
+' Relasi Admin
+admin --> UC_Login
+admin --> UC_Ruangan
+admin --> UC_Device
+admin --> UC_Monitor
+admin --> UC_History
+admin --> UC_Logout
+
+' Relasi Sensor (Otomatisasi)
+sensor --> UC_Send
+
+' Relasi Include (Fungsionalitas Sistem)
+UC_Send ..> UC_Validasi : <<include>>
+UC_Monitor ..> UC_Login : <<include>>
+UC_Ruangan ..> UC_Login : <<include>>
+UC_Device ..> UC_Login : <<include>>
+
+
+
+@enduml
