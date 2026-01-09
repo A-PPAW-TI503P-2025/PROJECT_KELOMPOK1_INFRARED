@@ -6,6 +6,9 @@ class Admin {
   - id_admin : int
   - username : string
   - password : string
+  --
+  + login()
+  + logout()
 }
 
 class Ruangan {
@@ -16,6 +19,11 @@ class Ruangan {
   - suhu_max : float
   - kelembapan_min : float
   - kelembapan_max : float
+  --
+  + tambahRuangan()
+  + ubahRuangan()
+  + hapusRuangan()
+  + getRuangan()
 }
 
 class Device {
@@ -23,6 +31,10 @@ class Device {
   - kode_device : string
   - status : string
   - id_ruangan : int
+  --
+  + tambahDevice()
+  + ubahDevice()
+  + ubahStatus()
 }
 
 class Monitoring {
@@ -31,6 +43,11 @@ class Monitoring {
   - kelembapan : float
   - waktu : datetime
   - id_device : int
+  --
+  + simpanData()
+  + getRealtime()
+  + getRiwayat()
+  + cekStatusNormal()
 }
 
 Admin "1" -- "*" Ruangan : mengelola
