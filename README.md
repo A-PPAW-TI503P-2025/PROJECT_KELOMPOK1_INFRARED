@@ -8,8 +8,6 @@ class diagram
 <img width="1202" height="315" alt="image" src="https://github.com/user-attachments/assets/a3e163e8-42d7-46d7-8706-7da8e0eb11c6" />
 
 ERD (Entity Relationship Diagram)
-
-
 <img width="210" height="760" alt="image" src="https://github.com/user-attachments/assets/07104923-9b3f-47c6-bb48-8875f5383a76" />
 
 Activity Diagram
@@ -20,4 +18,8 @@ Use Case
 
 Arsitektur Diagram
 <img width="1198" height="721" alt="image" src="https://github.com/user-attachments/assets/c1fff904-7586-49d8-a839-c1a32f21d02d" />
+
+flowchart
+![WhatsApp Image 2026-01-10 at 08 29 27_26260871](https://github.com/user-attachments/assets/7524e932-7f3f-44fb-bb2f-55ab2397e671)
+
 
