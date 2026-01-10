@@ -15,3 +15,7 @@ Activity Diagram
 
 Use Case
 <img width="1060" height="813" alt="Screenshot 2026-01-09 212736" src="https://github.com/user-attachments/assets/9eab826d-84b2-40c1-bee0-d750a410c18e" />
+
+Arsitektur Diagram
+<img width="1198" height="721" alt="image" src="https://github.com/user-attachments/assets/c1fff904-7586-49d8-a839-c1a32f21d02d" />
+
