@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 // 1. Koneksi Database
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',      // Sesuaikan user mysql kamu
-    password: '',      // Sesuaikan password mysql kamu
+    user: 'root',      
+    password: '',      
     database: 'smart_parking'
 });
 
