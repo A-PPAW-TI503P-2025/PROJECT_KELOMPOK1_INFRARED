@@ -1,75 +1,59 @@
 @startuml
-title Flowchart Sistem Monitoring Infrared Ruangan Rumah Sakit
-skinparam backgroundColor #FFFFFF
-skinparam shadowing false
-skinparam roundcorner 20
-skinparam defaultFontName Arial
-skinparam activity {
-    BackgroundColor #F9F9F9
-    BorderColor #333333
-    FontColor #000000
-}
+skinparam ActivityBackgroundColor #fdfdfd
+skinparam ActivityBorderColor #333333
+skinparam ActivityFontSize 12
+skinparam DiamondBackgroundColor #e9f5fe
+skinparam DiamondBorderColor #004a99
+
+title Flowchart Logika Sistem Parkir Mall Terintegrasi
 
 start
+:Kendaraan memutus sinyal **IR Break Beam**;
+:Sistem identifikasi **gate_id** dan **gate_type**;
 
-:Admin membuka aplikasi;
-:Admin memasukkan\nusername dan password;
-
-if (Autentikasi berhasil?) then (Ya)
-    :Sistem membuat sesi login;
-    :Tampilkan Dashboard Admin;
-
-    repeat
-        :Admin memilih menu;
-
-        if (Kelola Ruangan?) then (Ya)
-            :Sistem menampilkan\ndaftar ruangan;
-
-            if (Tambah Ruangan?) then (Ya)
-                :Admin input data ruangan\n(ID, Nama, Lokasi);
-                :Sistem validasi data;
-                if (Data valid?) then (Ya)
-                    :Simpan data ruangan\nke database;
-                else (Tidak)
-                    :Tampilkan pesan kesalahan;
-                endif
-
-            elseif (Edit Ruangan?) then (Ya)
-                :Admin memilih ruangan;
-                :Admin mengubah data ruangan;
-                :Sistem validasi perubahan;
-                :Update data ruangan\ndi database;
-
-            elseif (Hapus Ruangan?) then (Ya)
-                :Admin memilih ruangan;
-                :Sistem meminta\nkonfirmasi penghapusan;
-                if (Konfirmasi?) then (Ya)
-                    :Hapus data ruangan\ndari database;
-                else (Tidak)
-                    :Penghapusan dibatalkan;
-                endif
-            endif
-
-        elseif (Monitoring Ruangan?) then (Ya)
-            :Admin memilih ruangan;
-            :Sistem menghubungkan\nsensor infrared;
-            :Membaca suhu ruangan;
-            :Membaca kelembaban ruangan;
-            :Menampilkan data\nsecara real-time;
-
-            if (Melebihi batas normal?) then (Ya)
-                :Tampilkan peringatan\n(Alert);
-            endif
-
-        elseif (Logout?) then (Ya)
-            :Sistem menghapus sesi login;
-            stop
+if (Tipe Pintu?) then (Masuk (IN))
+    :Cek **current_filled** vs **max_capacity**\npada tabel **parking_levels**;
+    
+    if (Cek Kapasitas?) then (Masih Tersedia)
+        :Kirim Sinyal **BUKA PALANG**;
+        
+        fork
+            :INSERT data baru ke **parking_logs**;
+        fork again
+            :UPDATE **current_filled** (+1)\ndi tabel **parking_levels**;
+        end fork
+        
+        :Tampilkan pesan "Selamat Datang";
+        
+        if (Cek Threshold (95%)?) then (Ya)
+            :Nyalakan **Lampu Peringatan Merah**\ndi depan gerbang utama;
+        else (Tidak)
+            :Tetap nyalakan **Lampu Hijau**;
         endif
+        
+    else (Penuh)
+        :Tampilkan pesan "MAAF, PARKIR PENUH"\npada layar LED;
+        :Palang Tetap Tertutup;
+    endif
 
-    repeat while (Kembali ke Dashboard?)
-
-else (Tidak)
-    :Tampilkan pesan\nlogin gagal;
-    stop
+else (Keluar (OUT))
+    :Validasi Tiket / Pembayaran;
+    :Kirim Sinyal **BUKA PALANG**;
+    
+    fork
+        :INSERT data baru ke **parking_logs**;
+    fork again
+        :UPDATE **current_filled** (-1)\ndi tabel **parking_levels**;
+    end fork
+    
+    :Tampilkan pesan "Terima Kasih";
+    
+    if (Kapasitas < 95%?) then (Ya)
+        :Matikan **Lampu Peringatan Merah**;
+    endif
 endif
+
+:Kendaraan melewati area sensor;
+:Sistem Reset (Sinar Sensor Terhubung Kembali);
+stop
 @enduml
