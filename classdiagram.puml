@@ -1,0 +1,61 @@
+@startuml
+
+'--- PENGATURAN TAMPILAN (STYLING) ---
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+    AttributeIconSize 0
+}
+skinparam shadowing false
+
+skinparam linetype ortho
+
+'--- PENTING: PENGATURAN JARAK BIAR GAK NUMPUK ---
+' nodesep = jarak horizontal antar kotak
+skinparam nodesep 100 
+' ranksep = jarak vertikal antar kotak
+skinparam ranksep 80  
+
+title Diagram Kelas - Sistem Parkir Mall Pintar
+
+'--- DEFINISI KELAS ---
+
+class Users {
+    - id : int
+    - username : String
+    - password : String
+    __
+    + login()
+    + updatePassword()
+}
+
+class Settings {
+    - id : int
+    - nama_setting : String
+    - nilai : String
+    __
+    + getSetting()
+    + updateSetting()
+}
+
+class ParkingLogs {
+    - id : int
+    - waktu : DateTime
+    - arah : Enum {MASUK, KELUAR}
+    - kode_pintu : String
+    __
+    + createLog()
+    + getLaporanHarian()
+}
+
+'--- DEFINISI RELASI ---
+
+' Trik: Menambahkan tanda minus (--) lebih panjang kadang membantu layout default
+' Tapi kuncinya ada di skinparam nodesep di atas.
+
+Users "1" -right-> "*" Settings : Mengelola >
+
+Users "1" .down.> "*" ParkingLogs : Melihat Laporan >
+
+@enduml
