@@ -2,41 +2,50 @@
 left to right direction
 skinparam packageStyle rectangle
 
-actor "Admin" as admin
-actor "Sensor IoT (ESP32)" as sensor
+' Definisi Aktor
+actor "Admin / Petugas Parkir" as admin
+actor "Sensor Arduino (Hardware)" as sensor
 
-package "Sistem Monitoring Suhu & Kelembapan" {
-    
-    usecase "Login" as UC_Login
-    usecase "Logout" as UC_Logout
-    
-    usecase "Kelola Data Ruangan\n(CRUD)" as UC_Ruangan
-    usecase "Kelola Data Device\n(CRUD & Status)" as UC_Device
-    
-    usecase "Monitoring Real-time\n(Grafik & Data)" as UC_Monitor
-    usecase "Lihat Riwayat Sensor" as UC_History
-    
-    usecase "Kirim Data Sensor\n(Otomatis)" as UC_Send
-    usecase "Validasi Device" as UC_Validasi
+rectangle "Website Sistem Parkir Mall" {
+
+    ' Use Case untuk Autentikasi
+    usecase "Login ke Sistem" as UC_Login
+
+    ' Use Case Admin
+    usecase "Melihat Dashboard Real-time" as UC_Dashboard
+    usecase "Mengubah Pengaturan\n(Kapasitas & Status Toko)" as UC_Settings
+    usecase "Melihat Riwayat Log\n(Keluar/Masuk)" as UC_Log
+
+    ' Use Case Sistem/Sensor
+    usecase "Deteksi & Kirim Data\nMobil MASUK" as UC_InputMasuk
+    usecase "Deteksi & Kirim Data\nMobil KELUAR" as UC_InputKeluar
+
+    ' Use Case Logika Internal (Invisible)
+    usecase "Hitung Sisa Slot Otomatis" as UC_Hitung
+
 }
 
 ' Relasi Admin
-admin --> UC_Login
-admin --> UC_Ruangan
-admin --> UC_Device
-admin --> UC_Monitor
-admin --> UC_History
-admin --> UC_Logout
+admin -- UC_Login
+admin -- UC_Dashboard
+admin -- UC_Settings
+admin -- UC_Log
 
-' Relasi Sensor (Otomatisasi)
-sensor --> UC_Send
+' Relasi Sensor
+sensor -- UC_InputMasuk
+sensor -- UC_InputKeluar
 
-' Relasi Include (Fungsionalitas Sistem)
-UC_Send ..> UC_Validasi : <<include>>
-UC_Monitor ..> UC_Login : <<include>>
-UC_Ruangan ..> UC_Login : <<include>>
-UC_Device ..> UC_Login : <<include>>
+' Relasi Include (Ketergantungan)
+' Artinya: Saat membuka Dashboard, sistem WAJIB menghitung sisa slot
+UC_Dashboard ..> UC_Hitung : <<include>>
 
+' Syarat Login (Opsional secara visual, tapi logis)
+UC_Dashboard ..> UC_Login : <<include>>
+UC_Settings ..> UC_Login : <<include>>
 
+note right of UC_Hitung
+  Rumus:
+  (Kapasitas Total) - (Total Masuk - Total Keluar)
+end note
 
 @enduml
