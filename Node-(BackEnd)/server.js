@@ -66,7 +66,7 @@ app.post('/api/sensor', (req, res) => {
     const sql = "INSERT INTO parking_logs (arah, kode_pintu) VALUES (?, ?)";
     db.query(sql, [arah, kode_pintu], (err, result) => {
         if (err) return res.status(500).send(err);
-        res.send("Data Sensor Masuk!");
+        res.send(`Berhasil! Data mobil ${arah} di ${kode_pintu} tersimpan.`);
     });
 });
 
