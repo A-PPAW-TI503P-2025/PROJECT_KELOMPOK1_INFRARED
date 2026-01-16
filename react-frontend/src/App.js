@@ -1,6 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import './App.css'; 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import './App.css';
+
+// --- REGISTRASI KOMPONEN CHART ---
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 // --- 1. HALAMAN LOGIN ---
 function LoginPage({ onLogin }) {
@@ -22,7 +46,7 @@ function LoginPage({ onLogin }) {
         setError('Username atau Password salah!');
         setLoading(false);
       }
-    }, 1000); 
+    }, 1000);
   };
 
   return (
@@ -60,7 +84,7 @@ function LoginPage({ onLogin }) {
   );
 }
 
-// --- 2. HALAMAN DASHBOARD (FITUR EDIT ADA DI SINI) ---
+// --- 2. HALAMAN DASHBOARD ---
 function DashboardPage({ onLogout }) {
   const [data, setData] = useState({ capacity: 0, filled: 0, available: 0, logs: [] });
   
@@ -73,7 +97,6 @@ function DashboardPage({ onLogout }) {
     axios.get('http://localhost:3001/api/dashboard')
       .then(res => {
         setData(res.data);
-        // Sinkronkan input edit dengan data asli jika tidak sedang mengedit
         if (!isEditing) setNewCapacity(res.data.capacity);
       })
       .catch(err => console.error(err));
@@ -83,7 +106,7 @@ function DashboardPage({ onLogout }) {
     fetchData();
     const interval = setInterval(fetchData, 2000);
     return () => clearInterval(interval);
-  }, [isEditing]); // Pause refresh saat editing biar angka gak lompat
+  }, [isEditing]);
 
   // Fungsi Simpan Kapasitas Baru
   const handleUpdateCapacity = () => {
@@ -97,6 +120,74 @@ function DashboardPage({ onLogout }) {
         console.error(err);
         alert('❌ Gagal mengupdate kapasitas.');
       });
+  };
+
+  // --- LOGIKA DATA GRAFIK (KUMULATIF REAL-TIME) ---
+  const chartData = useMemo(() => {
+    // 1. Urutkan log dari yang terlama ke terbaru
+    const sortedLogs = [...data.logs].sort((a, b) => new Date(a.waktu) - new Date(b.waktu));
+    
+    // 2. Siapkan array untuk sumbu X (Waktu) dan Y (Jumlah Kumulatif)
+    const labels = [];
+    const dataMasuk = [];
+    const dataKeluar = [];
+    
+    let runningMasuk = 0;
+    let runningKeluar = 0;
+
+    sortedLogs.forEach(log => {
+      // Format Waktu: 10:45:01
+      const timeLabel = new Date(log.waktu).toLocaleTimeString('id-ID', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      });
+      
+      labels.push(timeLabel);
+
+      if (log.arah === 'MASUK') {
+        runningMasuk += 1;
+      } else {
+        runningKeluar += 1;
+      }
+
+      dataMasuk.push(runningMasuk);
+      dataKeluar.push(runningKeluar);
+    });
+    
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Total Masuk',
+          data: dataMasuk,
+          borderColor: '#10b981', // Hijau
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3, // Garis agak melengkung
+          fill: true
+        },
+        {
+          label: 'Total Keluar',
+          data: dataKeluar,
+          borderColor: '#ef4444', // Merah
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    };
+  }, [data.logs]);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // Supaya bisa diatur tingginya manual
+    plugins: {
+      legend: { position: 'bottom' }, // Legend di bawah biar rapi
+      title: { display: true, text: 'Aktivitas Kendaraan (Real-Time Timeline)' },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } }
+    }
   };
 
   const isFull = data.available <= 0;
@@ -117,7 +208,6 @@ function DashboardPage({ onLogout }) {
       </div>
 
       <div className="stats-container">
-        
         {/* KARTU 1: SLOT TERSEDIA */}
         <div className="card card-available" style={{ borderColor: isFull ? '#fca5a5' : '#86efac', background: isFull ? '#fef2f2' : '#f0fdf4' }}>
           <span className="card-label">Slot Tersedia</span>
@@ -150,7 +240,6 @@ function DashboardPage({ onLogout }) {
             <span className="info-label" style={{ display: 'block', marginBottom: '5px' }}>TOTAL KAPASITAS</span>
             
             {isEditing ? (
-              // TAMPILAN MODE EDIT
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => setNewCapacity(c => Math.max(0, parseInt(c) - 5))} style={{ padding: '5px 10px', cursor: 'pointer' }}>-5</button>
@@ -168,12 +257,26 @@ function DashboardPage({ onLogout }) {
                 </div>
               </div>
             ) : (
-              // TAMPILAN BIASA
               <div style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b' }}>
                 {data.capacity} <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#94a3b8' }}>Slot</span>
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* --- BAGIAN GRAFIK (DITENGAHKAN) --- */}
+      <div className="table-card" style={{ marginBottom: '20px', maxWidth: '850px', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div style={{ padding: '20px' }}>
+           {chartData.labels.length > 0 ? (
+             <div style={{ height: '350px', width: '100%' }}>
+               <Line options={chartOptions} data={chartData} />
+             </div>
+           ) : (
+             <p style={{ textAlign: 'center', color: '#94a3b8', padding: '50px' }}>
+               Belum ada data aktivitas untuk ditampilkan.
+             </p>
+           )}
         </div>
       </div>
 
