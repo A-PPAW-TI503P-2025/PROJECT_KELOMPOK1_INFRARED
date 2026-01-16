@@ -1,52 +1,64 @@
 @startuml
 autonumber
-actor Admin
-participant "Frontend (React)" as FE
-participant "IoT Controller" as BE
-participant "Sensor (ESP32)" as IoT
-database "Database" as DB
 
-' --- BAGIAN 1: SENSOR KIRIM DATA ---
-group Sensor Mengirim Data
-    IoT -> BE: POST /api/data (mac, suhu, lembab)
-    activate BE
+' Definisi Aktor dan Peserta
+participant "Mobil (Pengunjung)" as Mobil
+participant "Arduino (Sensor IR)" as Arduino
+participant "Server (Backend API)" as Server
+database "Database (MySQL)" as DB
+participant "Web Dashboard (Admin)" as Web
+
+' == FASE 1 ==
+box "Area Parkir" #LightBlue
+    participant Mobil
+    participant Arduino
+end box
+
+== FASE 1: DETEKSI dan LOGGING ==
+
+Mobil -> Arduino: Melewati Sensor
+activate Arduino
+Arduino -> Arduino: Validasi Sinyal
+
+Arduino -> Server: HTTP POST (arah=MASUK)
+activate Server
+
+Server -> DB: INSERT INTO parking_logs
+activate DB
+DB --> Server: Simpan Berhasil
+deactivate DB
+
+Server --> Arduino: Response 200 OK
+deactivate Server
+
+Arduino -> Arduino: Reset Status Sensor
+deactivate Arduino
+
+' == FASE 2 ==
+== FASE 2: UPDATE TAMPILAN ==
+
+loop Setiap 3 Detik
+    Web -> Server: GET Request (Minta Data)
+    activate Web
+    activate Server
     
-    BE -> DB: SELECT id FROM devices WHERE mac_address = '...'
+    Server -> DB: Query Hitung (Masuk - Keluar)
     activate DB
-    DB --> BE: Return Device ID
+    DB --> Server: Return Jumlah Mobil
     deactivate DB
     
-    alt Device Valid
-        BE -> DB: INSERT INTO sensor_logs (device_id, suhu...)
-        activate DB
-        DB --> BE: Success
-        deactivate DB
-        BE --> IoT: 200 OK
-    else Invalid
-        BE --> IoT: 404 Error
-    end
-    deactivate BE
+    Server -> DB: Query Cek Kapasitas Total
+    activate DB
+    DB --> Server: Return Kapasitas
+    deactivate DB
+    
+    Server -> Server: Hitung Sisa Slot
+    
+    Server --> Web: JSON {sisa_slot: 50}
+    deactivate Server
+    
+    Web -> Web: Update UI (Hijau/Merah)
+    deactivate Web
 end
 
-' --- BAGIAN 2: MONITORING ---
-group Admin Monitoring
-    Admin -> FE: Pilih Ruangan "ICU 01"
-    activate FE
-    
-    loop Auto Refresh (5 Detik)
-        FE -> BE: GET /api/history?ruanganId=5
-        activate BE
-        
-        BE -> DB: SELECT logs.* FROM sensor_logs logs \nJOIN devices d ON logs.device_id = d.id \nWHERE d.ruangan_id = 5
-        activate DB
-        DB --> BE: Return Array Data
-        deactivate DB
-        
-        BE --> FE: JSON Response
-        deactivate BE
-        
-        FE -> Admin: Update Grafik
-    end
-    deactivate FE
-end
 @enduml

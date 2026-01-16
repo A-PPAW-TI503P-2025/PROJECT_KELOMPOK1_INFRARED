@@ -1,6 +1,6 @@
-@startuml ERD_Monitoring_Suhu
+@startuml Sistem_Parkir_Mall
 
-' Menggunakan skinparam untuk tampilan yang lebih modern
+' Konfigurasi tampilan
 skinparam linetype ortho
 skinparam shadowing false
 skinparam class {
@@ -9,52 +9,37 @@ skinparam class {
     BorderColor Black
 }
 
-' --- Definisi Entitas ---
-
-entity "Admin" as admin {
-    * id_admin : int <<PK>>
+entity "settings" as settings {
+    * id_setting : INT <<PK>>
     --
-    * username : string
-    * password : string
+    * kapasitas_total : INT
+    * status_parkir : ENUM('BUKA', 'TUTUP')
 }
 
-entity "Ruangan" as ruangan {
-    * id_ruangan : int <<PK>>
+entity "parking_logs" as logs {
+    * id_log : INT <<PK>>
     --
-    * nama_ruangan : string
-    * lokasi : string
-    * suhu_min : float
-    * suhu_max : float
-    * kelembapan_min : float
-    * kelembapan_max : float
+    * waktu : TIMESTAMP
+    * arah : ENUM('MASUK', 'KELUAR')
+    * kode_pintu : VARCHAR(50)
 }
 
-entity "Device" as device {
-    * id_device : int <<PK>>
+entity "users" as users {
+    * id_user : INT <<PK>>
     --
-    * kode_device : string
-    * status : string
-    * id_ruangan : int <<FK>>
+    * username : VARCHAR(50)
+    * password : VARCHAR(255)
+    * nama_petugas : VARCHAR(100)
 }
 
-entity "Monitoring" as monitoring {
-    * id_monitoring : int <<PK>>
-    --
-    * suhu : float
-    * kelembapan : float
-    * waktu : datetime
-    * id_device : int <<FK>>
-}
+' Relasi secara logika:
+' Admin mengelola setting dan memantau log
+users ||--o{ settings : "mengatur"
+users ||--o{ logs : "memantau"
 
-' --- Relasi Antar Entitas ---
-
-' Satu Admin mengelola banyak Ruangan
-admin ||--o{ ruangan : "mengelola"
-
-' Satu Ruangan memiliki satu Device (1-to-1 sesuai gambar)
-ruangan ||--|| device : "memiliki"
-
-' Satu Device menghasilkan banyak data Monitoring
-device ||--o{ monitoring : "menghasilkan"
+note right of logs
+  Rumus Sisa Slot:
+  Kapasitas - (Count MASUK - Count KELUAR)
+end note
 
 @enduml
