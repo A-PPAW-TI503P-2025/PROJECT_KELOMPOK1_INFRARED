@@ -1,22 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
-// Import Routes
 const parkingRoutes = require('./routes/parkingRoutes');
 
 const app = express();
+const port = 3001;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // WAJIB: Supaya bisa baca data JSON dari frontend
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Gunakan Routes
-// Semua URL di parkingRoutes akan diawali dengan /api
 app.use('/api', parkingRoutes);
 
 // Jalankan Server
-const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`Server berjalan di port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server berjalan di http://localhost:${port}`);
 });

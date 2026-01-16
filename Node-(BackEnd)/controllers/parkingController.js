@@ -1,33 +1,27 @@
 const ParkingModel = require('../models/parkingModel');
 
-// Controller untuk Dashboard
+// 1. Controller Dashboard
 exports.getDashboard = (req, res) => {
-    // 1. Ambil Kapasitas
     ParkingModel.getSetting('kapasitas_total', (err, resultCap) => {
         if (err) return res.status(500).send(err);
         
-        // Handle jika setting tidak ditemukan
-        const maxCapacity = resultCap.length > 0 ? parseInt(resultCap[0].nilai) : 0;
+        // Default ke 50 jika database masih kosong
+        const maxCapacity = resultCap.length > 0 ? parseInt(resultCap[0].nilai) : 50;
 
-        // 2. Hitung Mobil Masuk
         ParkingModel.countLogsByDirection('MASUK', (err, resIn) => {
             if (err) return res.status(500).send(err);
             const totalIn = resIn[0].total;
 
-            // 3. Hitung Mobil Keluar
             ParkingModel.countLogsByDirection('KELUAR', (err, resOut) => {
                 if (err) return res.status(500).send(err);
                 const totalOut = resOut[0].total;
 
-                // --- LOGIKA UTAMA DI SINI ---
                 const currentFilled = totalIn - totalOut;
                 const availableSlots = maxCapacity - currentFilled;
 
-                // 4. Ambil 5 Log Terakhir
                 ParkingModel.getRecentLogs(5, (err, logs) => {
                     if (err) return res.status(500).send(err);
 
-                    // Kirim Response JSON (View)
                     res.json({
                         capacity: maxCapacity,
                         filled: currentFilled < 0 ? 0 : currentFilled,
@@ -40,17 +34,32 @@ exports.getDashboard = (req, res) => {
     });
 };
 
-// Controller untuk Sensor Arduino
+// 2. Controller Update Kapasitas (ANTI-GAGAL)
+exports.updateCapacity = (req, res) => {
+    const { newCapacity } = req.body;
+
+    // Pastikan ada isinya (angka 0 pun boleh)
+    if (newCapacity === undefined || newCapacity === null || newCapacity === '') {
+        return res.status(400).json({ success: false, message: "Nilai kapasitas tidak valid!" });
+    }
+
+    // Panggil fungsi model yang baru (Auto Update/Insert)
+    ParkingModel.updateSetting('kapasitas_total', newCapacity, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Database Error" });
+        }
+        res.json({ success: true, message: "Kapasitas berhasil disimpan!" });
+    });
+};
+
+// 3. Controller Sensor
 exports.addSensorData = (req, res) => {
     const { arah, kode_pintu } = req.body;
-
-    // Validasi input sederhana
-    if (!arah || !kode_pintu) {
-        return res.status(400).send("Data tidak lengkap!");
-    }
+    if (!arah || !kode_pintu) return res.status(400).send("Data tidak lengkap!");
 
     ParkingModel.addLog(arah, kode_pintu, (err, result) => {
         if (err) return res.status(500).send(err);
-        res.send(`Berhasil! Data mobil ${arah} di ${kode_pintu} tersimpan.`);
+        res.send("Data tersimpan.");
     });
 };
