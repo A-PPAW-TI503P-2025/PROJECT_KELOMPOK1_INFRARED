@@ -1,67 +1,61 @@
-@startuml System_Architecture_Hospital_IoT
+@startuml
+' --- PENGATURAN TAMPILAN ---
+left to right direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+' Menggunakan polyline supaya garis lebih luwes mencari jalan kosong
+skinparam linetype polyline 
+skinparam nodesep 100
+skinparam ranksep 60
 
-' --- STYLE CONFIGURATION ---
-skinparam linetype ortho
-skinparam componentStyle uml2
-skinparam backgroundColor #FFFFFF
-skinparam packageBackgroundColor #F5F5F5
-
-' --- DEFINISI NODE (PERANGKAT KERAS/LOKASI) ---
-
-node "Lingkungan Rumah Sakit (Ruang Pasien)" as room {
-    component "Sensor Suhu & Lembap\n(Microcontroller + DHT Sensor)" as iot_device #LightBlue
-    note right of iot_device
-      Mengirim data setiap 
-      beberapa detik
-    end note
+' Warna Konsisten
+skinparam package {
+    BackgroundColor<<Physical>> #FFE0B2
+    BackgroundColor<<Edge>> #D1C4E9
+    BackgroundColor<<Server>> #BBDEFB
+    BackgroundColor<<Client>> #C8E6C9
+    BorderColor Gray
 }
 
-node "Cloud / Backend Server" as server_env {
-    
-    component "API Gateway / Backend App" as backend #LightYellow {
-        component "Auth Controller" as auth
-        component "Monitoring Controller" as monitor
-        component "WebSocket Service" as socket_svc
-    }
-    
-    database "Database Server" as db_server #LightCoral {
-        folder "Tables" {
-            card "Tabel: Admin" as t_admin
-            card "Tabel: Ruangan" as t_ruang
-            card "Tabel: Device" as t_device
-            card "Tabel: Log_Monitoring" as t_log
-        }
-    }
+title Architecture Diagram: Smart Mall Parking (Clean Version)
+
+' --- DEFINISI KOMPONEN (LEVEL HIGH) ---
+
+package "1. PARKIRAN (Physical Layer)" <<Physical>> {
+    component "Kendaraan" as Car
+    component "Sensor IR\n(Break Beam)" as Sensor
 }
 
-node "Client Side (Admin)" as client_pc {
-    component "Web Browser\n(Admin Dashboard)" as web_app #LightGreen
+package "2. HARDWARE (IoT Layer)" <<Edge>> {
+    ' Kita gabung visualnya supaya hemat tempat
+    component "Microcontroller\n(Arduino + ESP8266)" as IoT
 }
 
-' --- DEFINISI RELASI & PROTOKOL ---
+package "3. CLOUD SERVER (Backend Layer)" <<Server>> {
+    ' Sederhanakan server menjadi satu blok logika
+    component "Web Service / API\n(Node.js Logic)" as Backend
+    database "Database\n(MySQL)" as DB
+}
 
-' 1. IOT ke Server
-iot_device -down-> backend : " HTTP POST / MQTT\n(Kirim Data Sensor)"
+package "4. USER (Client Layer)" <<Client>> {
+    component "Laptop Admin\n(Web Browser)" as Client
+}
 
-' 2. Server ke Database
-backend -down-> db_server : " SQL Query / ORM\n(Read/Write Data)"
-monitor ..> t_log : " Insert Log"
-monitor ..> t_device : " Update Status"
-auth ..> t_admin : " Verifikasi Login"
+' --- ALUR RELASI (SATU ARAH MAJU) ---
 
-' 3. Server ke Client (Realtime)
-socket_svc -up-> web_app : " WebSocket (WSS)\n(Push Real-time Data)"
+' Alur 1: Mobil -> Sensor
+Car -> Sensor : Deteksi
 
-' 4. Client ke Server (CRUD)
-web_app -down-> backend : " HTTP REST API\n(CRUD Ruangan & View History)"
+' Alur 2: Sensor -> IoT
+Sensor -> IoT : Signal High/Low
 
-' --- KETERANGAN TAMBAHAN ---
-legend right
-  | Warna | Tipe Komponen |
-  | <#LightBlue> | Hardware IoT (Sensor) |
-  | <#LightYellow> | Aplikasi Backend |
-  | <#LightCoral> | Database Storage |
-  | <#LightGreen> | Frontend Admin |
-endlegend
+' Alur 3: IoT -> Server (Jarak Jauh)
+IoT ..> Backend : HTTP POST (JSON Data)\nVia Internet
+
+' Alur 4: Internal Server (Simpan/Baca)
+Backend <--> DB : Query & Save Data
+
+' Alur 5: Server -> User
+Backend --> Client : Tampilkan Dashboard
 
 @enduml
