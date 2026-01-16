@@ -19,7 +19,6 @@ skinparam ranksep 80
 
 title Diagram Kelas - Sistem Parkir Mall Pintar
 
-'--- DEFINISI KELAS ---
 
 class Users {
     - id : int
