@@ -1,0 +1,49 @@
+@startuml
+' Pengaturan Tampilan
+skinparam shadowing false
+skinparam ActivityBackgroundColor #FEFECE
+skinparam ActivityBorderColor #A80036
+skinparam ArrowColor #A80036
+
+title Activity Diagram: Alur Deteksi & Perhitungan Parkir
+
+|Hardware (Arduino & Sensor)|
+start
+:Sensor Mendeteksi Kendaraan;
+
+if (Jenis Sensor?) then (Sensor Pintu Masuk)
+    :Kirim Data "MASUK" & ID Pintu\nke Website via WiFi/Serial;
+else (Sensor Pintu Keluar)
+    :Kirim Data "KELUAR" & ID Pintu\nke Website via WiFi/Serial;
+endif
+
+|Sistem Backend & Database|
+:Terima Data Request;
+
+' Pengecekan Status Toko dari Tabel Settings
+:Cek Tabel 'settings' (Status Parkir);
+if (Status Parkir = "TUTUP"?) then (Ya)
+    :Tolak/Abaikan Data;
+    stop
+else (Tidak / BUKA)
+    :Simpan Data ke Tabel 'parking_logs'\n(Waktu, Arah, Kode Pintu);
+endif
+
+' Proses Perhitungan Logika
+:Ambil Nilai 'kapasitas_total' dari Tabel 'settings';
+:Query Hitung Total 'MASUK' - Total 'KELUAR';
+:Hitung Sisa Slot = Kapasitas - Kendaraan di Dalam;
+
+|Website Dashboard|
+:Refresh Tampilan Dashboard Admin;
+
+if (Sisa Slot <= 0?) then (Ya / Penuh)
+    :Tampilkan Notifikasi "PARKIR PENUH";
+    :Ubah Warna Indikator jadi MERAH;
+else (Tidak / Masih Ada)
+    :Tampilkan Angka Sisa Slot Terbaru;
+    :Ubah Warna Indikator jadi HIJAU;
+endif
+
+stop
+@enduml
