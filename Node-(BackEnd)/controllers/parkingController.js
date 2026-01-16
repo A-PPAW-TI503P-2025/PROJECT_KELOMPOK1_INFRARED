@@ -60,6 +60,6 @@ exports.addSensorData = (req, res) => {
 
     ParkingModel.addLog(arah, kode_pintu, (err, result) => {
         if (err) return res.status(500).send(err);
-        res.send("Data tersimpan.");
+        res.send(`Berhasil! Data mobil ${arah} di ${kode_pintu} tersimpan.`);
     });
 };
